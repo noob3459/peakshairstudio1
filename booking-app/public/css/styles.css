@@ -1,0 +1,707 @@
+/* =========================================================
+   Peaks Hair Studio — stylesheet
+   Edit the custom properties below to retune the palette.
+   ========================================================= */
+
+:root {
+  /* Brand palette — warm ivory, espresso, taupe, muted copper/terracotta, antique gold. No green. */
+  --ivory: #FBF7F0;
+  --ivory-deep: #F2EADC;
+  --espresso: #362520;
+  --espresso-soft: #4A362E;
+  --taupe: #A6978A;
+  --taupe-light: #D8CDC1;
+  --copper: #B5765A;
+  --copper-deep: #9C5C43;
+  --gold: #C9A961;
+
+  --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --max-width: 1140px;
+  --radius: 4px;
+  --transition: 180ms ease;
+}
+
+/* ---------- Reset / base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--espresso);
+  background: var(--ivory);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+img { max-width: 100%; display: block; height: auto; }
+
+h1, h2, h3 {
+  font-family: var(--font-serif);
+  color: var(--espresso);
+  line-height: 1.15;
+  margin: 0 0 0.5em;
+}
+
+h1 { font-size: clamp(2.1rem, 6vw, 3.4rem); }
+h2 { font-size: clamp(1.7rem, 4vw, 2.4rem); }
+h3 { font-size: 1.15rem; }
+
+/* Secondary-page top heading — one size down from the homepage hero h1,
+   so the home page keeps the single largest focal point on the site. */
+.page-title { font-size: clamp(1.9rem, 5vw, 2.75rem); }
+
+p { margin: 0 0 1em; }
+
+a { color: var(--copper-deep); text-decoration: underline; text-decoration-thickness: 1px; }
+a:hover { color: var(--espresso); }
+
+ul { margin: 0; padding: 0; list-style: none; }
+
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--espresso);
+  color: var(--ivory);
+  padding: 0.75em 1.25em;
+  z-index: 1000;
+  border-radius: var(--radius);
+}
+.skip-link:focus {
+  left: 0.75rem;
+  top: 0.75rem;
+}
+
+/* ---------- Focus states ---------- */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.85em 1.7em;
+  border-radius: var(--radius);
+  border: 2px solid transparent;
+  transition: background var(--transition), color var(--transition), border-color var(--transition),
+    box-shadow var(--transition), transform var(--transition);
+}
+.btn-small { padding: 0.55em 1.1em; font-size: 0.9rem; }
+
+.btn-primary {
+  background: var(--copper);
+  color: var(--ivory);
+  border-color: var(--copper);
+  box-shadow: 0 1px 2px rgba(54, 37, 32, 0.12);
+}
+.btn-primary:hover {
+  background: var(--copper-deep);
+  border-color: var(--copper-deep);
+  color: var(--ivory);
+  box-shadow: 0 10px 20px -10px rgba(54, 37, 32, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--espresso);
+  border-color: var(--espresso);
+}
+.btn-secondary:hover {
+  background: var(--espresso);
+  color: var(--ivory);
+  transform: translateY(-1px);
+}
+
+.hero-actions { display: flex; flex-wrap: wrap; gap: 0.9rem; margin-top: 1.5rem; }
+
+/* ---------- Header / nav ---------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--ivory);
+  border-bottom: 1px solid rgba(201, 169, 97, 0.4);
+}
+
+.header-inner {
+  /* Overrides .container's 1140px content cap: at the "no-wrap" nav
+     breakpoint below, the brand + every nav item + both buttons + the staff
+     link need more room than the content column gets elsewhere on the site.
+     Capped at 1140px, this was overflowing past the right edge on every
+     window width, no matter how wide — raising the nav breakpoint alone
+     couldn't fix that, since the container never grew past 1140px either. */
+  max-width: 1800px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
+  gap: 1rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: var(--espresso);
+}
+.brand-mark { width: 40px; height: 40px; border-radius: 50%; }
+.brand-name {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+@media (max-width: 420px) {
+  .brand-name { font-size: 0.98rem; }
+}
+
+.nav-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: 1px solid var(--taupe);
+  border-radius: var(--radius);
+  color: var(--espresso);
+  cursor: pointer;
+}
+/* Two separate icons (not a CSS-drawn hamburger) swapped by aria-expanded —
+   plain SVG lines render evenly spaced regardless of browser/zoom, unlike
+   stacking three margin-separated boxes, and "closed" vs "open" get a
+   clearly distinct icon (hamburger vs. X) instead of an animated morph. */
+.nav-toggle-icon { width: 22px; height: 22px; }
+.nav-toggle-icon-close { display: none; }
+.nav-toggle[aria-expanded="true"] .nav-toggle-icon-open { display: none; }
+.nav-toggle[aria-expanded="true"] .nav-toggle-icon-close { display: block; }
+
+.site-nav {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(80vw, 320px);
+  background: var(--ivory);
+  padding: 5rem 1.5rem 2rem;
+  transform: translateX(100%);
+  transition: transform var(--transition);
+  overflow-y: auto;
+  box-shadow: -8px 0 24px rgba(0,0,0,0.12);
+}
+.site-nav.is-open { transform: translateX(0); }
+.site-nav ul { display: flex; flex-direction: column; gap: 1.1rem; }
+.site-nav a {
+  color: var(--espresso);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+.site-nav a:hover { color: var(--copper-deep); }
+.site-nav a[aria-current="page"] {
+  color: var(--copper-deep);
+  font-weight: 700;
+  border-bottom: 2px solid var(--gold);
+}
+.brand[aria-current="page"] .brand-name { color: var(--copper-deep); }
+.nav-call { display: inline-block; margin-top: 1.5rem; }
+.nav-staff {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin-top: 1.5rem;
+  border-radius: 50%;
+  color: var(--taupe);
+  text-decoration: none;
+}
+.nav-staff svg { width: 19px; height: 19px; }
+.nav-staff:hover { color: var(--copper-deep); background: rgba(196, 132, 84, 0.1); }
+
+/* Items only get a full horizontal row once there's comfortably enough width
+   for all of them at once (brand + 6 links + 2 buttons + the staff link) —
+   below this, the hamburger drawer (above) handles it, so nav links never
+   shrink-wrap onto a second line mid-item, and nothing overflows the
+   viewport's right edge either (see .header-inner's raised max-width above,
+   which this breakpoint relies on actually having room to use). */
+@media (min-width: 1440px) {
+  .nav-toggle { display: none; }
+  .site-nav {
+    position: static;
+    inset: auto;
+    width: auto;
+    background: none;
+    padding: 0;
+    transform: none;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 1.25rem;
+  }
+  .site-nav ul { flex-direction: row; flex-wrap: nowrap; gap: 1.25rem; }
+  .nav-call,
+  .nav-staff { margin-top: 0; }
+}
+
+/* ---------- Sections (shared) ---------- */
+.section { padding: clamp(3.5rem, 6vw, 5.5rem) 0; }
+.eyebrow {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.05rem;
+  color: var(--copper-deep);
+  margin-bottom: 0.4rem;
+}
+.section-intro { color: var(--espresso-soft); max-width: 42em; }
+
+/* ---------- Hero ---------- */
+.hero {
+  background: var(--ivory-deep);
+  padding-top: 2.75rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero-horizon {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 120px;
+  color: var(--gold);
+  opacity: 0.18;
+  pointer-events: none;
+}
+.hero-horizon svg { width: 100%; height: 100%; display: block; }
+.hero-inner {
+  position: relative;
+  display: grid;
+  gap: 2.25rem;
+  padding-bottom: 2.75rem;
+}
+.hero-logo { margin-bottom: 1.25rem; border-radius: 50%; }
+.hero-rule {
+  width: 56px;
+  height: 3px;
+  background: var(--gold);
+  border: 0;
+  margin: 0 0 1.1rem;
+}
+.tagline { font-style: italic; font-size: 1.1rem; color: var(--espresso-soft); max-width: 32em; }
+.hero-sub { font-size: 1.05rem; max-width: 32em; }
+.hero-media img {
+  border-radius: var(--radius);
+  width: 100%;
+  box-shadow: 0 24px 48px -24px rgba(54, 37, 32, 0.35);
+}
+
+@media (min-width: 900px) {
+  .hero-inner {
+    grid-template-columns: 1.08fr 0.92fr;
+    align-items: center;
+  }
+}
+
+.event-banner {
+  background: var(--espresso);
+  color: var(--ivory);
+}
+.event-banner-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+}
+.event-banner p { margin: 0; }
+.event-banner a { color: var(--gold); font-weight: 600; }
+.event-banner[hidden] { display: none; }
+
+/* ---------- Explore (homepage preview links) ---------- */
+.explore { background: var(--ivory); }
+.explore-list { margin-top: 2rem; }
+.explore-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding: 1.75rem 0;
+  border-top: 1px solid var(--taupe-light);
+}
+.explore-item:last-child { border-bottom: 1px solid var(--taupe-light); }
+.explore-item[hidden] { display: none; }
+.explore-copy { max-width: 36em; }
+.explore-copy h3 { margin-bottom: 0.3rem; }
+.explore-copy p { margin: 0; color: var(--espresso-soft); }
+.explore-link {
+  flex-shrink: 0;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--copper-deep);
+  white-space: nowrap;
+}
+.explore-link:hover { color: var(--espresso); }
+.explore-link span { display: inline-block; transition: transform var(--transition); }
+.explore-link:hover span { transform: translateX(3px); }
+
+/* ---------- Grand opening ---------- */
+.grand-opening { background: var(--ivory); }
+.grand-opening-inner {
+  display: grid;
+  gap: 2rem;
+}
+.event-datetime { font-weight: 600; color: var(--copper-deep); }
+.event-list { margin: 1rem 0; display: grid; gap: 0.5rem; }
+.event-list li { padding-left: 1.4em; position: relative; }
+.event-list li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0.55em;
+  width: 8px; height: 8px;
+  background: var(--gold);
+  border-radius: 50%;
+}
+.event-footnote { color: var(--espresso-soft); font-size: 0.95rem; }
+.grand-opening-media img {
+  border-radius: var(--radius);
+  box-shadow: 0 18px 40px -22px rgba(54, 37, 32, 0.4);
+}
+.grand-opening[hidden] { display: none; }
+.grand-opening-passed { text-align: center; }
+.grand-opening-passed p { max-width: 36em; margin-left: auto; margin-right: auto; color: var(--espresso-soft); }
+
+@media (min-width: 900px) {
+  .grand-opening-inner { grid-template-columns: 1fr 1fr; align-items: center; }
+}
+
+/* ---------- Services ---------- */
+.services { background: var(--ivory-deep); }
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.service-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 7rem;
+  background: var(--ivory);
+  border-top: 3px solid var(--copper);
+  padding: 1.5rem 1.25rem;
+  border-radius: var(--radius);
+}
+.service-card h3 { margin-bottom: 0.25rem; }
+.service-card p { margin: 0; color: var(--espresso-soft); font-size: 0.95rem; }
+
+@media (min-width: 640px) {
+  .service-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.specialties { margin-top: 2.5rem; }
+.specialties ul { display: grid; gap: 0.5rem; margin-top: 0.75rem; }
+.services-cta { margin-top: 2.5rem; }
+
+/* ---------- Team ---------- */
+.team-hero {
+  max-width: 30em;
+  margin: 2rem auto 3rem;
+  text-align: center;
+}
+.team-hero-photo {
+  max-width: 320px;
+  margin: 0 auto 1.75rem;
+  overflow: hidden;
+  border-radius: var(--radius);
+  box-shadow: 0 18px 40px -22px rgba(54, 37, 32, 0.4);
+}
+/* Crops the supplied photo's edge-of-frame Instagram carousel controls (arrow, profile icon, pagination dots)
+   without touching the source file — visual-only crop via transform, anchored top-left. */
+.team-hero-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform: scale(1.1);
+  transform-origin: top left;
+}
+.team-hero-quote {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--espresso-soft);
+  line-height: 1.55;
+  margin: 0;
+}
+
+@media (min-width: 640px) {
+  .team-hero-photo { max-width: 360px; }
+}
+
+.team-grid {
+  display: grid;
+  gap: 1.75rem;
+  margin-top: 2rem;
+}
+.team-card {
+  /* Bios run different lengths, so each card is a column with its "Book
+     with ___" button pushed to the bottom (margin-top: auto) — grid rows
+     already stretch every card to the tallest one's height, so the buttons
+     land on the same line across all three regardless of bio length. */
+  display: flex;
+  flex-direction: column;
+}
+.team-card-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  object-position: center 38%;
+  margin-bottom: 1.25rem;
+  border-radius: var(--radius);
+  box-shadow: 0 16px 34px -22px rgba(54, 37, 32, 0.48);
+}
+.team-card h3 { margin-bottom: 0.2rem; }
+.team-role { color: var(--copper-deep); font-weight: 600; margin-bottom: 0.75rem; }
+.team-bio { color: var(--espresso-soft); margin-bottom: 0.75rem; }
+.team-social { font-size: 0.9rem; }
+.team-contact { margin-bottom: 0.75rem; min-height: 1.3em; }
+.team-book { margin-top: auto; align-self: flex-start; }
+
+@media (min-width: 640px) {
+  .team-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ---------- Our story ---------- */
+.story { background: var(--espresso); color: var(--ivory); padding-top: clamp(4rem, 8vw, 6.5rem); padding-bottom: clamp(4rem, 8vw, 6.5rem); }
+.story .eyebrow { color: var(--gold); }
+.story h1, .story h2 { color: var(--ivory); }
+.story-inner { max-width: 44em; }
+.story-lede {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(1.3rem, 3vw, 1.7rem);
+  color: var(--gold);
+  line-height: 1.45;
+  margin-bottom: 1.5rem;
+}
+/* btn-secondary is espresso-on-transparent by default, which disappears
+   against this section's dark espresso background — flip it to light. */
+.story .btn-secondary { color: var(--ivory); border-color: var(--taupe-light); }
+.story .btn-secondary:hover { background: var(--ivory); color: var(--espresso); border-color: var(--ivory); }
+
+/* ---------- Join the team ---------- */
+.join-team { background: var(--ivory-deep); }
+.rate-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 2rem;
+  max-width: 32em;
+}
+.rate-card {
+  background: var(--ivory);
+  border-top: 3px solid var(--copper);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  text-align: center;
+}
+.rate-amount { font-family: var(--font-serif); font-size: 1.8rem; color: var(--copper-deep); margin: 0; }
+.rate-amount span { font-family: var(--font-sans); font-size: 0.95rem; color: var(--espresso-soft); }
+
+.perk-list { margin-top: 1.5rem; display: grid; gap: 0.5rem; }
+.perk-list li { padding-left: 1.4em; position: relative; }
+.perk-list li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0.55em;
+  width: 8px; height: 8px;
+  background: var(--copper);
+  border-radius: 50%;
+}
+.join-team-cta { margin-top: 2rem; }
+
+/* ---------- Visit ---------- */
+.visit-inner { display: grid; gap: 2.5rem; }
+.hours-table { border-collapse: collapse; margin-top: 0.75rem; }
+.hours-table th, .hours-table td {
+  text-align: left;
+  padding: 0.35em 1.25em 0.35em 0;
+  border-bottom: 1px solid var(--taupe-light);
+}
+.hours-note { font-size: 0.9rem; color: var(--espresso-soft); margin-top: 0.5rem; }
+.contact-list { margin-top: 0.75rem; display: grid; gap: 0.4rem; }
+.visit-info h3 { margin-top: 1.75rem; }
+
+.visit-panel {
+  background: var(--espresso);
+  color: var(--ivory-deep);
+  border-radius: var(--radius);
+  padding: 2.25rem;
+  align-self: start;
+}
+.visit-panel-quote {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.3rem;
+  color: var(--ivory);
+  margin-bottom: 0.6rem;
+}
+.visit-panel p:not(.visit-panel-quote) { color: var(--taupe-light); }
+.visit-panel .btn-primary { margin-top: 0.5rem; }
+
+@media (min-width: 900px) {
+  .visit-inner { grid-template-columns: 1.3fr 1fr; align-items: start; }
+}
+
+/* ---------- Footer ---------- */
+.site-footer {
+  background: var(--espresso);
+  color: var(--ivory-deep);
+  position: relative;
+  overflow: hidden;
+}
+.mountain-motif {
+  color: var(--gold);
+  opacity: 0.55;
+  line-height: 0;
+}
+.mountain-motif svg { width: 100%; height: 110px; display: block; }
+.footer-inner {
+  padding: 0.5rem 1.25rem 2.5rem;
+  display: grid;
+  gap: 2rem 3rem;
+  text-align: center;
+}
+.footer-brand { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+.footer-brand img { border-radius: 50%; }
+.footer-brand p { font-family: var(--font-serif); font-size: 1.3rem; margin: 0; color: var(--ivory); }
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: start;
+  gap: 0.6rem 1.5rem;
+}
+.footer-links a { color: var(--ivory-deep); text-decoration: none; font-size: 0.95rem; }
+.footer-links a:hover { color: var(--gold); }
+.footer-copy {
+  grid-column: 1 / -1;
+  font-size: 0.85rem;
+  color: var(--taupe-light);
+  margin: 0;
+  padding-top: 1.75rem;
+  border-top: 1px solid rgba(201, 169, 97, 0.25);
+}
+
+@media (min-width: 640px) {
+  .footer-inner {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    text-align: left;
+    padding-top: 0.75rem;
+  }
+  .footer-brand { flex-direction: row; align-items: center; }
+  .footer-links { justify-content: flex-end; }
+}
+
+/* ---------- Premium polish: load-in + heading shine + scroll reveal ----------
+   All three are subtle and one-shot (nothing loops forever), and all are
+   fully neutralized by the prefers-reduced-motion block at the bottom of
+   this file via its blanket `animation: none !important; transition: none
+   !important;` — so no separate reduced-motion handling is needed per rule. */
+
+/* Whole-page fade-in on load. */
+body { animation: pageFadeIn 500ms ease both; }
+@keyframes pageFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Logo gives a small, playful tilt on hover. */
+.brand-mark { transition: transform 300ms ease; }
+.brand:hover .brand-mark { transform: scale(1.06) rotate(-4deg); }
+
+/* Heading shine: a soft light sweep crosses the page's one <h1> shortly after
+   load, then stops for good — a one-time accent, not an ongoing shimmer.
+   `overflow: hidden` only clips this decorative sweep to the heading's own
+   box; it changes nothing else about how h1 lays out. */
+h1 {
+  position: relative;
+  overflow: hidden;
+}
+h1::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 35%;
+  height: 100%;
+  background: linear-gradient(115deg, transparent 15%, rgba(255, 255, 255, 0.5) 50%, transparent 85%);
+  transform: translateX(-120%) skewX(-15deg);
+  animation: headingShine 1.8s 450ms ease-out 1 both;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+@keyframes headingShine {
+  to { transform: translateX(420%) skewX(-15deg); }
+}
+
+/* Scroll reveal: card/media blocks rise and fade in once as they enter view
+   (see js/main.js). The <noscript> rule in each page's <head> guarantees
+   full visibility if JS never runs. */
+.service-card,
+.rate-card,
+.team-card,
+.explore-item,
+.hero-media,
+.visit-panel,
+.grand-opening-media {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 650ms cubic-bezier(0.22, 1, 0.36, 1), transform 650ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.is-revealed { opacity: 1 !important; transform: translateY(0) !important; }
+
+/* Gentle cascade so siblings in the same grid/list don't all land at once. */
+.service-grid > :nth-child(2), .team-grid > :nth-child(2), .explore-list > :nth-child(2), .rate-grid > :nth-child(2) { transition-delay: 90ms; }
+.service-grid > :nth-child(3), .team-grid > :nth-child(3), .explore-list > :nth-child(3), .rate-grid > :nth-child(3) { transition-delay: 180ms; }
+.service-grid > :nth-child(4), .explore-list > :nth-child(4) { transition-delay: 270ms; }
+.service-grid > :nth-child(5), .explore-list > :nth-child(5) { transition-delay: 360ms; }
+.service-grid > :nth-child(6), .explore-list > :nth-child(6) { transition-delay: 450ms; }
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; animation: none !important; }
+  h1::after { display: none; }
+}
