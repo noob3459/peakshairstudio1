@@ -25,8 +25,7 @@ function formatPrice(cents: number | null): string {
   return cents == null ? "Call to confirm pricing" : `$${(cents / 100).toFixed(2)}`;
 }
 
-function bookedByLabel(name: string | null): string {
-  if (!name) return "Not recorded (booked before this history was tracked)";
+function bookedByLabel(name: string): string {
   return name === "Client (self-booked)" ? "You (booked online)" : `${name} (staff)`;
 }
 
@@ -214,10 +213,12 @@ export default function LookupFlow() {
                     <span className={`admin-status-badge admin-status-${receipt.status}`}>{receipt.status}</span>
                   </td>
                 </tr>
-                <tr>
-                  <th scope="row">Booked by</th>
-                  <td>{bookedByLabel(receipt.bookedByName)}</td>
-                </tr>
+                {receipt.bookedByName && (
+                  <tr>
+                    <th scope="row">Booked by</th>
+                    <td>{bookedByLabel(receipt.bookedByName)}</td>
+                  </tr>
+                )}
                 {receipt.notes && (
                   <tr>
                     <th scope="row">Notes</th>
