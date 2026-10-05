@@ -185,14 +185,14 @@ export default function AdminAppointmentsPage() {
                   const start = new Date(a.startAt);
                   return (
                     <tr key={a.id}>
-                      <td>
+                      <td data-label="When">
                         {formatLocalDate(start)}
                         <br />
                         {formatLocalTime(start)}
                       </td>
-                      <td>{a.serviceName}</td>
-                      <td>{a.stylistName}</td>
-                      <td>
+                      <td data-label="Service">{a.serviceName}</td>
+                      <td data-label="Stylist">{a.stylistName}</td>
+                      <td data-label="Client">
                         {a.clientName}
                         <br />
                         <a href={`tel:${a.clientPhone}`}>{a.clientPhone}</a>
@@ -205,10 +205,10 @@ export default function AdminAppointmentsPage() {
                           </>
                         )}
                       </td>
-                      <td>
+                      <td data-label="Status">
                         <span className={`admin-status-badge admin-status-${a.status}`}>{a.status}</span>
                       </td>
-                      <td>
+                      <td data-label="Actions">
                         <div className="admin-row-actions">
                           {a.status !== "confirmed" && a.status !== "cancelled" && (
                             <button

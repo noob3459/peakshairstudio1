@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
-import { appointments, services, stylists } from "@/lib/db/schema";
+import { appointmentEvents, appointments, services, stylists } from "@/lib/db/schema";
 import { canActAcrossStylists, getCurrentStylist } from "@/lib/currentStylist";
 import { formatLocalDate, formatLocalTime } from "@/lib/timezone";
 import { sendAppointmentUpdateEmail } from "@/lib/email";
@@ -91,6 +92,19 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
 
   const effectiveStart = action === "reschedule" ? new Date(parsed.data.startAt) : new Date(existing.startAt);
   const emailAction = action === "confirm" ? "confirmed" : action === "cancel" ? "cancelled" : "rescheduled";
+
+  await db.insert(appointmentEvents).values({
+    id: randomUUID(),
+    appointmentId: existing.id,
+    action: emailAction,
+    actorStylistId: me.id,
+    actorName: me.name,
+    clientName: existing.clientName,
+    serviceName: existing.serviceName,
+    stylistName: existing.stylistName,
+    startAt: effectiveStart.toISOString(),
+    previousStartAt: action === "reschedule" ? existing.startAt : null,
+  });
 
   await sendAppointmentUpdateEmail({
     appointmentId: existing.id,

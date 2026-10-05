@@ -395,9 +395,9 @@ export default function AdminUsersPage() {
                 const isSelf = u.id === me?.id;
                 return (
                   <tr key={u.id}>
-                    <td>{u.name}</td>
-                    <td>{u.role}</td>
-                    <td>
+                    <td data-label="Name">{u.name}</td>
+                    <td data-label="Title">{u.role}</td>
+                    <td data-label="Access">
                       {isDev && !isSelf ? (
                         <select
                           value={u.accessRole}
@@ -416,7 +416,7 @@ export default function AdminUsersPage() {
                       {!u.active && <span className="admin-status-badge admin-status-cancelled">inactive</span>}
                       {isSelf && <span className="booking-option-meta"> (you)</span>}
                     </td>
-                    <td>
+                    <td data-label="Actions">
                       <div className="admin-row-actions">
                         <button
                           type="button"

@@ -141,6 +141,29 @@ export const appointments = pgTable(
   ],
 );
 
+// One row per staff action taken on an appointment (created, confirmed,
+// cancelled, rescheduled) — an append-only audit trail for the dev account
+// to review what every stylist/owner has done, and when. Client self-bookings
+// also get a "created" row with actorStylistId null. Appointment/service/
+// stylist names are snapshotted at event time (not joined live) so the log
+// stays an accurate record of what happened even if a stylist is later
+// renamed or removed.
+export const appointmentEvents = pgTable("appointment_events", {
+  id: text("id").primaryKey(),
+  appointmentId: text("appointment_id").references(() => appointments.id, { onDelete: "cascade" }),
+  action: text("action", { enum: ["created", "confirmed", "cancelled", "rescheduled"] }).notNull(),
+  actorStylistId: text("actor_stylist_id").references(() => stylists.id, { onDelete: "set null" }),
+  actorName: text("actor_name").notNull(),
+  clientName: text("client_name").notNull(),
+  serviceName: text("service_name").notNull(),
+  stylistName: text("stylist_name").notNull(),
+  startAt: timestamp("start_at", { withTimezone: true, mode: "string" }).notNull(),
+  previousStartAt: timestamp("previous_start_at", { withTimezone: true, mode: "string" }),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .notNull()
+    .default(sql`now()`),
+});
+
 export const emailLog = pgTable("email_log", {
   id: text("id").primaryKey(),
   appointmentId: text("appointment_id").references(() => appointments.id, {

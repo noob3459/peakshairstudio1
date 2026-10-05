@@ -3,7 +3,7 @@ import { and, asc, eq, gte, lt, ne, lte } from "drizzle-orm";
 import { randomBytes, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
-import { appointments, services, stylists } from "@/lib/db/schema";
+import { appointmentEvents, appointments, services, stylists } from "@/lib/db/schema";
 import { canActAcrossStylists, getCurrentStylist, resolveTargetStylist } from "@/lib/currentStylist";
 import { formatLocalDate, formatLocalTime, zonedDateMinutesToUtc } from "@/lib/timezone";
 import { sendBookingEmails } from "@/lib/email";
@@ -155,6 +155,17 @@ export async function POST(req: NextRequest) {
       notes: input.notes || null,
       marketingOptIn: input.marketingOptIn,
       status: input.status,
+    });
+    await db.insert(appointmentEvents).values({
+      id: randomUUID(),
+      appointmentId: id,
+      action: "created",
+      actorStylistId: me.id,
+      actorName: me.name,
+      clientName: input.clientName,
+      serviceName: service.name,
+      stylistName: stylist.name,
+      startAt: startAt.toISOString(),
     });
   } catch (err) {
     if (isUniqueViolation(err)) {

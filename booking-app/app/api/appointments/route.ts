@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { randomUUID, randomBytes } from "node:crypto";
 import { db } from "@/lib/db/client";
-import { appointments, services, stylists } from "@/lib/db/schema";
+import { appointmentEvents, appointments, services, stylists } from "@/lib/db/schema";
 import { createAppointmentSchema } from "@/lib/validation";
 import { formatLocalDate, formatLocalTime } from "@/lib/timezone";
 import { sendBookingEmails } from "@/lib/email";
@@ -65,6 +65,17 @@ export async function POST(req: NextRequest) {
       notes: input.notes || null,
       marketingOptIn: input.marketingOptIn ?? false,
       status: "confirmed",
+    });
+    await db.insert(appointmentEvents).values({
+      id: randomUUID(),
+      appointmentId: id,
+      action: "created",
+      actorStylistId: null,
+      actorName: "Client (self-booked)",
+      clientName: input.clientName,
+      serviceName: service.name,
+      stylistName: stylist.name,
+      startAt: startAt.toISOString(),
     });
   } catch (err) {
     if (isUniqueViolation(err)) {

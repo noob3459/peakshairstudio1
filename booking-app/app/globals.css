@@ -776,6 +776,16 @@ select:focus-visible {
   box-shadow: 0 6px 16px rgba(54, 37, 32, 0.25);
 }
 .admin-visit-site:hover { color: var(--gold); }
+@media (max-width: 640px) {
+  /* A fixed pill permanently covers table rows while scrolling on narrow screens;
+     put it back in normal flow below the content instead. */
+  .admin-visit-site {
+    position: static;
+    align-self: center;
+    margin: 0 0 1.5rem;
+    box-shadow: none;
+  }
+}
 .admin-topbar {
   background: var(--espresso);
   color: var(--ivory-deep);
@@ -890,9 +900,32 @@ select:focus-visible {
 }
 .admin-table th { color: var(--taupe); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; }
 @media (max-width: 640px) {
-  .admin-table { font-size: 0.85rem; }
-  .admin-table th, .admin-table td { padding: 0.5em 0.6em; white-space: nowrap; }
-  .admin-table td { white-space: normal; }
+  /* A 6-column table doesn't fit a phone screen; stack each row as a labeled card instead. */
+  .admin-table-wrap { overflow-x: visible; }
+  .admin-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .admin-table, .admin-table tbody, .admin-table tr, .admin-table td { display: block; width: 100%; }
+  .admin-table tr {
+    background: var(--ivory-deep);
+    border-top: 3px solid var(--copper);
+    border-radius: var(--radius);
+    padding: 0.9rem 1rem;
+    margin-bottom: 0.9rem;
+  }
+  .admin-table td {
+    padding: 0.4em 0;
+    border-bottom: none;
+  }
+  .admin-table td:not(:last-child) { border-bottom: 1px solid var(--taupe-light); }
+  .admin-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--taupe);
+    margin-bottom: 0.2rem;
+  }
 }
 
 /* Appointments filter chips + search */
@@ -908,6 +941,15 @@ select:focus-visible {
 .admin-appointments-search {
   flex: 1 1 16em;
   max-width: 22em;
+  padding: 0.55em 0.85em;
+  border: 1px solid var(--taupe-light);
+  border-radius: var(--radius);
+  background: var(--ivory);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--espresso);
+}
+.admin-appointments-toolbar select {
   padding: 0.55em 0.85em;
   border: 1px solid var(--taupe-light);
   border-radius: var(--radius);

@@ -61,6 +61,11 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
               {me?.accessRole === "dev" ? "Proposals" : "Propose a Change"}
             </a>
           )}
+          {me?.accessRole === "dev" && (
+            <a href="/staff/activity" aria-current={pathname === "/staff/activity" ? "page" : undefined}>
+              Activity Log
+            </a>
+          )}
         </nav>
         <div className="admin-topbar-user">
           {me && <span className="admin-whoami">{me.name}</span>}
