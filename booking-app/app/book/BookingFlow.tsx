@@ -256,9 +256,14 @@ export default function BookingFlow() {
               <a href="mailto:peakshairstudio@gmail.com">peakshairstudio@gmail.com</a> and reference your
               confirmation code.
             </p>
-            <a className="btn btn-primary" href="/home.html">
-              Back to site
-            </a>
+            <div className="hero-actions">
+              <a className="btn btn-primary" href="/home.html">
+                Back to site
+              </a>
+              <a className="btn btn-secondary" href="/lookup">
+                Look Up This Appointment Later
+              </a>
+            </div>
           </div>
         </main>
         <SiteFooter />

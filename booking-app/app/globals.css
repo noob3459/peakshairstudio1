@@ -765,6 +765,43 @@ select:focus-visible {
 
 .booking-confirmation .btn { margin-top: 1.5rem; }
 
+/* ---------- Appointment lookup + receipt ---------- */
+.lookup-form { max-width: 26em; margin-bottom: 2rem; }
+.lookup-results { margin-top: 1.5rem; }
+.lookup-section-title { font-family: var(--font-serif); font-size: 1.1rem; margin: 1.5rem 0 0.75rem; }
+.lookup-card-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+.lookup-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: var(--ivory-deep);
+  border-radius: var(--radius);
+  border-top: 3px solid var(--copper);
+  padding: 1rem 1.25rem;
+}
+.lookup-card-main p { margin: 0 0 0.3rem; }
+.lookup-card-when { font-weight: 600; color: var(--espresso); }
+
+.receipt-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+.receipt-table th, .receipt-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5em 0.5em 0.5em 0;
+  border-bottom: 1px solid var(--taupe-light);
+  font-size: 0.92rem;
+}
+.receipt-table th { width: 8em; color: var(--taupe); font-weight: 600; }
+.receipt-print.admin-modal { max-width: 32em; }
+
+@media print {
+  body * { visibility: hidden; }
+  .receipt-print, .receipt-print * { visibility: visible; }
+  .receipt-print { position: absolute; top: 0; left: 0; width: 100%; max-width: none; box-shadow: none; }
+  .receipt-print .no-print { display: none; }
+}
+
 /* ---------- Admin ---------- */
 .admin-shell { min-height: 100vh; display: flex; flex-direction: column; background: var(--ivory); }
 .admin-visit-site {
