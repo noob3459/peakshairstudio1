@@ -18,6 +18,9 @@ const ROLE_LABEL: Record<AccessRole, string> = {
   stylist: "Stylist",
 };
 
+const PASSWORD_RULE_TEXT =
+  "At least 8 characters, with an uppercase letter, a lowercase letter, and a special character.";
+
 export default function AdminUsersPage() {
   const [me, setMe] = useState<{ id: string; accessRole: AccessRole } | null>(null);
   const [users, setUsers] = useState<StylistRow[]>([]);
@@ -27,6 +30,10 @@ export default function AdminUsersPage() {
   const [editing, setEditing] = useState<StylistRow | null>(null);
   const [editForm, setEditForm] = useState({ name: "", role: "", active: true });
   const [busyId, setBusyId] = useState<string | null>(null);
+
+  const [settingPasswordFor, setSettingPasswordFor] = useState<StylistRow | null>(null);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [addForm, setAddForm] = useState({ username: "", name: "", role: "Stylist" });
@@ -66,6 +73,44 @@ export default function AdminUsersPage() {
         return;
       }
       setResultBanner({ name: user.name, password: data.password });
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  function startSetPassword(user: StylistRow) {
+    setPasswordInput("");
+    setPasswordError(null);
+    setSettingPasswordFor(user);
+  }
+
+  async function submitSetPassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!settingPasswordFor) return;
+    if (
+      passwordInput.length < 8 ||
+      !/[a-z]/.test(passwordInput) ||
+      !/[A-Z]/.test(passwordInput) ||
+      !/[^A-Za-z0-9]/.test(passwordInput)
+    ) {
+      setPasswordError(PASSWORD_RULE_TEXT);
+      return;
+    }
+    setBusyId(settingPasswordFor.id);
+    setPasswordError(null);
+    try {
+      const res = await fetch(`/api/admin/stylists/${settingPasswordFor.id}/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: passwordInput }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPasswordError(data.error ?? "Couldn't set that password.");
+        return;
+      }
+      setResultBanner({ name: settingPasswordFor.name, password: data.password });
+      setSettingPasswordFor(null);
     } finally {
       setBusyId(null);
     }
@@ -309,6 +354,16 @@ export default function AdminUsersPage() {
                         >
                           Reset Password
                         </button>
+                        {canManage && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            onClick={() => startSetPassword(u)}
+                            disabled={busyId === u.id}
+                          >
+                            Set Password
+                          </button>
+                        )}
                         {isDev && (
                           <button type="button" className="btn btn-secondary" onClick={() => startEdit(u)}>
                             Edit
@@ -331,6 +386,44 @@ export default function AdminUsersPage() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {settingPasswordFor && (
+        <div className="admin-modal-backdrop" onClick={() => setSettingPasswordFor(null)}>
+          <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.2rem" }}>
+              Set password for {settingPasswordFor.name}
+            </h2>
+            <form onSubmit={submitSetPassword}>
+              <div className="form-field">
+                <label htmlFor="new-password">New password</label>
+                <input
+                  id="new-password"
+                  type="text"
+                  autoComplete="new-password"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  minLength={8}
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <p className="booking-option-meta">
+                {PASSWORD_RULE_TEXT} Their current password stops working immediately.
+              </p>
+              <div aria-live="assertive">{passwordError && <p className="form-error">{passwordError}</p>}</div>
+              <div className="admin-modal-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setSettingPasswordFor(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={busyId === settingPasswordFor.id}>
+                  Set Password
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

@@ -36,12 +36,13 @@
  *   npx tsx scripts/create-staff-admins.ts aidenn      # just one (e.g. add/reset a single account
  *                                                       # without touching everyone else's password)
  */
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { createSupabaseAdminClient } from "../lib/supabase/admin";
 import { db } from "../lib/db/client";
 import { stylists } from "../lib/db/schema";
 import { STAFF_USERNAMES, usernameToSyntheticEmail } from "../lib/staffAccounts";
+import { generatePassword } from "../lib/password";
 
 type StaffUsername = (typeof STAFF_USERNAMES)[number];
 
@@ -51,12 +52,6 @@ const ACCESS_ROLE: Record<StaffUsername, "stylist" | "manager" | "dev"> = {
   brandon: "stylist",
   aidenn: "dev",
 };
-
-function generatePassword(): string {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#%&*";
-  const bytes = randomBytes(16);
-  return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("");
-}
 
 async function ensureStylistRow(username: StaffUsername) {
   const [existing] = await db.select().from(stylists).where(eq(stylists.slug, username)).limit(1);

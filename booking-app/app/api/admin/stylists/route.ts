@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { asc, eq, ne } from "drizzle-orm";
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
 import { stylists } from "@/lib/db/schema";
 import { getCurrentStylist } from "@/lib/currentStylist";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isValidUsernameFormat, usernameToSyntheticEmail } from "@/lib/staffAccounts";
+import { generatePassword } from "@/lib/password";
 
 /**
  * Lists staff accounts. A plain stylist gets just themselves. A manager
@@ -31,12 +32,6 @@ export async function GET() {
       : await db.select().from(stylists).where(ne(stylists.accessRole, "dev")).orderBy(asc(stylists.name));
 
   return NextResponse.json({ stylists: rows });
-}
-
-function generatePassword(): string {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#%&*";
-  const bytes = randomBytes(16);
-  return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join("");
 }
 
 const createSchema = z.object({
