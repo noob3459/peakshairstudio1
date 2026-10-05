@@ -18,13 +18,14 @@ type AppointmentRow = {
   stylistName: string;
 };
 
-type RangeKey = "upcoming" | "today" | "week" | "past";
+type RangeKey = "upcoming" | "today" | "all" | "past";
 
 export default function AdminAppointmentsPage() {
   const [appointments, setAppointments] = useState<AppointmentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [range, setRange] = useState<RangeKey>("upcoming");
+  const [search, setSearch] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
   const [rescheduleValue, setRescheduleValue] = useState("");
@@ -60,13 +61,22 @@ export default function AdminAppointmentsPage() {
   }, []);
 
   const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
     return appointments.filter((a) => {
-      if (range === "upcoming") return a.startAt >= nowIso;
-      if (range === "past") return a.startAt < nowIso;
-      if (range === "today") return a.startAt >= todayBounds.startIso && a.startAt < todayBounds.endIso;
-      return true;
+      if (range === "upcoming" && a.startAt < nowIso) return false;
+      if (range === "past" && a.startAt >= nowIso) return false;
+      if (range === "today" && (a.startAt < todayBounds.startIso || a.startAt >= todayBounds.endIso)) return false;
+      if (!q) return true;
+      return (
+        a.clientName.toLowerCase().includes(q) ||
+        a.clientEmail.toLowerCase().includes(q) ||
+        a.clientPhone.toLowerCase().includes(q) ||
+        a.serviceName.toLowerCase().includes(q) ||
+        a.stylistName.toLowerCase().includes(q) ||
+        a.confirmationCode.toLowerCase().includes(q)
+      );
     });
-  }, [appointments, range, nowIso, todayBounds]);
+  }, [appointments, range, search, nowIso, todayBounds]);
 
   const stats = useMemo(() => {
     const notCancelled = appointments.filter((a) => a.status !== "cancelled");
@@ -118,21 +128,31 @@ export default function AdminAppointmentsPage() {
 
       <NewAppointmentForm onCreated={load} />
 
-      <div className="booking-date-row" role="group" aria-label="Filter appointments" style={{ marginBottom: "0.5rem" }}>
-        {(["upcoming", "today", "week", "past"] as RangeKey[]).map((key) => (
-          <button
-            key={key}
-            type="button"
-            className={`booking-date-chip${range === key ? " is-selected" : ""}`}
-            onClick={() => setRange(key)}
-            aria-pressed={range === key}
-          >
-            {key === "upcoming" && "Upcoming"}
-            {key === "today" && "Today"}
-            {key === "week" && "All"}
-            {key === "past" && "Past"}
-          </button>
-        ))}
+      <div className="admin-appointments-toolbar">
+        <div className="booking-date-row" role="group" aria-label="Filter appointments">
+          {(["upcoming", "today", "all", "past"] as RangeKey[]).map((key) => (
+            <button
+              key={key}
+              type="button"
+              className={`booking-date-chip${range === key ? " is-selected" : ""}`}
+              onClick={() => setRange(key)}
+              aria-pressed={range === key}
+            >
+              {key === "upcoming" && "Upcoming"}
+              {key === "today" && "Today"}
+              {key === "all" && "All"}
+              {key === "past" && "Past"}
+            </button>
+          ))}
+        </div>
+        <input
+          type="text"
+          className="admin-appointments-search"
+          placeholder="Search client, service, stylist, code…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          aria-label="Search appointments"
+        />
       </div>
 
       <div aria-live="polite">
@@ -141,7 +161,8 @@ export default function AdminAppointmentsPage() {
         {loading && <p>Loading appointments&hellip;</p>}
       </div>
 
-      {!loading && filtered.length === 0 && <p>No appointments in this view.</p>}
+      {!loading && filtered.length === 0 && appointments.length > 0 && <p>No appointments match this filter.</p>}
+      {!loading && appointments.length === 0 && <p>No appointments in this view.</p>}
 
       {!loading && filtered.length > 0 && (
         <div className="admin-table-wrap">

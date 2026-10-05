@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type AccessRole = "stylist" | "manager" | "dev";
 type StylistRow = {
@@ -40,6 +40,23 @@ export default function AdminUsersPage() {
   const [addError, setAddError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
+  const [search, setSearch] = useState("");
+
+  const [toast, setToast] = useState<{ kind: "success" | "error"; message: string } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  function showToast(kind: "success" | "error", message: string) {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast({ kind, message });
+    toastTimer.current = setTimeout(() => setToast(null), 5000);
+  }
+
+  const [confirmState, setConfirmState] = useState<{ message: string; confirmLabel: string; onConfirm: () => void } | null>(
+    null,
+  );
+  function askConfirm(message: string, confirmLabel: string, onConfirm: () => void) {
+    setConfirmState({ message, confirmLabel, onConfirm });
+  }
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -61,21 +78,26 @@ export default function AdminUsersPage() {
     load();
   }, [load]);
 
-  async function resetPassword(user: StylistRow) {
-    if (!confirm(`Reset ${user.name}'s password? Their current password will stop working immediately.`)) return;
-    setBusyId(user.id);
-    setResultBanner(null);
-    try {
-      const res = await fetch(`/api/admin/stylists/${user.id}/reset-password`, { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.error ?? "Couldn't reset that password.");
-        return;
-      }
-      setResultBanner({ name: user.name, password: data.password });
-    } finally {
-      setBusyId(null);
-    }
+  function resetPassword(user: StylistRow) {
+    askConfirm(
+      `Reset ${user.name}'s password? Their current password will stop working immediately.`,
+      "Reset Password",
+      async () => {
+        setBusyId(user.id);
+        setResultBanner(null);
+        try {
+          const res = await fetch(`/api/admin/stylists/${user.id}/reset-password`, { method: "POST" });
+          const data = await res.json();
+          if (!res.ok) {
+            showToast("error", data.error ?? "Couldn't reset that password.");
+            return;
+          }
+          setResultBanner({ name: user.name, password: data.password });
+        } finally {
+          setBusyId(null);
+        }
+      },
+    );
   }
 
   function startSetPassword(user: StylistRow) {
@@ -116,48 +138,53 @@ export default function AdminUsersPage() {
     }
   }
 
-  async function removeUser(user: StylistRow) {
-    if (
-      !confirm(
-        `Remove ${user.name}'s account? They'll immediately lose access. If they have appointment history, they'll be deactivated instead of fully deleted to keep those records intact.`,
-      )
-    )
-      return;
-    setBusyId(user.id);
-    try {
-      const res = await fetch(`/api/admin/stylists/${user.id}`, { method: "DELETE" });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        alert(data.error ?? "Couldn't remove that account.");
-        return;
-      }
-      if (data.deactivated) {
-        alert(`${user.name} had appointment history, so their account was deactivated and access revoked, rather than fully deleted.`);
-      }
-      await load();
-    } finally {
-      setBusyId(null);
-    }
+  function removeUser(user: StylistRow) {
+    askConfirm(
+      `Remove ${user.name}'s account? They'll immediately lose access. If they have appointment history, they'll be deactivated instead of fully deleted to keep those records intact.`,
+      "Remove",
+      async () => {
+        setBusyId(user.id);
+        try {
+          const res = await fetch(`/api/admin/stylists/${user.id}`, { method: "DELETE" });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            showToast("error", data.error ?? "Couldn't remove that account.");
+            return;
+          }
+          showToast(
+            "success",
+            data.deactivated
+              ? `${user.name} had appointment history, so their account was deactivated and access revoked, rather than fully deleted.`
+              : `Removed ${user.name}'s account.`,
+          );
+          await load();
+        } finally {
+          setBusyId(null);
+        }
+      },
+    );
   }
 
-  async function changeAccessRole(user: StylistRow, accessRole: AccessRole) {
-    if (!confirm(`Set ${user.name}'s access level to "${ROLE_LABEL[accessRole]}"?`)) return;
-    setBusyId(user.id);
-    try {
-      const res = await fetch(`/api/admin/stylists/${user.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accessRole }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        alert(d.error ?? "Couldn't change that account's access level.");
-        return;
+  function changeAccessRole(user: StylistRow, accessRole: AccessRole) {
+    askConfirm(`Set ${user.name}'s access level to "${ROLE_LABEL[accessRole]}"?`, "Change Access", async () => {
+      setBusyId(user.id);
+      try {
+        const res = await fetch(`/api/admin/stylists/${user.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessRole }),
+        });
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          showToast("error", d.error ?? "Couldn't change that account's access level.");
+          return;
+        }
+        showToast("success", `${user.name} is now ${ROLE_LABEL[accessRole]}.`);
+        await load();
+      } finally {
+        setBusyId(null);
       }
-      await load();
-    } finally {
-      setBusyId(null);
-    }
+    });
   }
 
   function startEdit(user: StylistRow) {
@@ -176,10 +203,11 @@ export default function AdminUsersPage() {
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        alert(d.error ?? "Couldn't save changes.");
+        showToast("error", d.error ?? "Couldn't save changes.");
         return;
       }
       setEditing(null);
+      showToast("success", "Saved changes.");
       await load();
     } finally {
       setBusyId(null);
@@ -217,6 +245,21 @@ export default function AdminUsersPage() {
   const isDev = me?.accessRole === "dev";
   const canManage = me?.accessRole === "manager" || me?.accessRole === "dev";
 
+  const visibleUsers = users.filter((u) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return u.name.toLowerCase().includes(q) || u.role.toLowerCase().includes(q);
+  });
+
+  async function copyPassword(password: string) {
+    try {
+      await navigator.clipboard.writeText(password);
+      showToast("success", "Password copied to clipboard.");
+    } catch {
+      showToast("error", "Couldn't copy — select and copy the password manually.");
+    }
+  }
+
   return (
     <div>
       <div className="admin-page-head">
@@ -240,6 +283,15 @@ export default function AdminUsersPage() {
         {error && <p className="form-error">{error}</p>}
         {loading && <p>Loading&hellip;</p>}
       </div>
+
+      {toast && (
+        <div className={`admin-toast admin-toast-${toast.kind}`} role="status">
+          <span>{toast.message}</span>
+          <button type="button" className="admin-toast-dismiss" onClick={() => setToast(null)} aria-label="Dismiss">
+            &times;
+          </button>
+        </div>
+      )}
 
       {showAddForm && canManage && (
         <section className="admin-card">
@@ -301,13 +353,33 @@ export default function AdminUsersPage() {
           <p className="booking-option-meta">
             Shown once — relay it securely (in person or a password manager&rsquo;s share feature), then dismiss this.
           </p>
-          <button type="button" className="btn btn-secondary btn-small" onClick={() => setResultBanner(null)}>
-            Dismiss
-          </button>
+          <div className="admin-row-actions">
+            <button type="button" className="btn btn-secondary btn-small" onClick={() => copyPassword(resultBanner.password)}>
+              Copy Password
+            </button>
+            <button type="button" className="btn btn-secondary btn-small" onClick={() => setResultBanner(null)}>
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 
-      {!loading && users.length > 0 && (
+      {users.length > 5 && (
+        <div className="form-field" style={{ maxWidth: "20em" }}>
+          <label htmlFor="user-search">Search</label>
+          <input
+            id="user-search"
+            type="text"
+            placeholder="Filter by name or title…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      )}
+
+      {!loading && users.length > 0 && visibleUsers.length === 0 && <p>No users match &ldquo;{search}&rdquo;.</p>}
+
+      {!loading && visibleUsers.length > 0 && (
         <div className="admin-table-wrap">
           <table className="admin-table">
             <thead>
@@ -319,7 +391,7 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => {
+              {visibleUsers.map((u) => {
                 const isSelf = u.id === me?.id;
                 return (
                   <tr key={u.id}>
@@ -423,6 +495,30 @@ export default function AdminUsersPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {confirmState && (
+        <div className="admin-modal-backdrop" onClick={() => setConfirmState(null)}>
+          <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+            <p>{confirmState.message}</p>
+            <div className="admin-modal-actions">
+              <button type="button" className="btn btn-secondary" onClick={() => setConfirmState(null)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  const { onConfirm } = confirmState;
+                  setConfirmState(null);
+                  onConfirm();
+                }}
+              >
+                {confirmState.confirmLabel}
+              </button>
+            </div>
           </div>
         </div>
       )}
