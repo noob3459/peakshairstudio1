@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
 import { appointments, services, stylists } from "@/lib/db/schema";
+import { canActAcrossStylists, getCurrentStylist } from "@/lib/currentStylist";
 import { formatLocalDate, formatLocalTime } from "@/lib/timezone";
 import { sendAppointmentUpdateEmail } from "@/lib/email";
 import { isUniqueViolation } from "@/lib/db/errors";
@@ -17,6 +18,11 @@ const patchSchema = z.discriminatedUnion("action", [
 ]);
 
 export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const me = await getCurrentStylist();
+  if (!me) {
+    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  }
+
   const { id } = await context.params;
 
   let body: unknown;
@@ -51,6 +57,9 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     .limit(1);
 
   if (!existing) {
+    return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+  }
+  if (existing.stylistId !== me.id && !canActAcrossStylists(me)) {
     return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
   }
 

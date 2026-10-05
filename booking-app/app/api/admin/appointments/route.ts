@@ -4,12 +4,22 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
 import { appointments, services, stylists } from "@/lib/db/schema";
-import { getCurrentStylist, resolveTargetStylist } from "@/lib/currentStylist";
+import { canActAcrossStylists, getCurrentStylist, resolveTargetStylist } from "@/lib/currentStylist";
 import { formatLocalDate, formatLocalTime, zonedDateMinutesToUtc } from "@/lib/timezone";
 import { sendBookingEmails } from "@/lib/email";
 import { isUniqueViolation } from "@/lib/db/errors";
 
+/**
+ * Lists appointments. A plain stylist only ever gets their own — a manager
+ * (Reyna) or dev (Aidenn) gets everyone's, matching the Users page's same
+ * canActAcrossStylists split.
+ */
 export async function GET(req: NextRequest) {
+  const me = await getCurrentStylist();
+  if (!me) {
+    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
   const from = searchParams.get("from"); // ISO instant, inclusive
   const to = searchParams.get("to"); // ISO instant, exclusive
@@ -17,6 +27,7 @@ export async function GET(req: NextRequest) {
   const conditions = [];
   if (from) conditions.push(gte(appointments.startAt, from));
   if (to) conditions.push(lte(appointments.startAt, to));
+  if (!canActAcrossStylists(me)) conditions.push(eq(appointments.stylistId, me.id));
 
   const rows = await db
     .select({
