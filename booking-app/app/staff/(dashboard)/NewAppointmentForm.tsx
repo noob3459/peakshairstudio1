@@ -228,8 +228,10 @@ export default function NewAppointmentForm({ onCreated }: { onCreated?: () => vo
     <details className="admin-card admin-new-appointment" aria-labelledby="new-appointment-heading">
       <summary className="admin-card-head" aria-label="Toggle new appointment form">
         <h2 id="new-appointment-heading">New appointment</h2>
-        <span className="admin-pill">All times are Pacific Time</span>
-        <span className="admin-collapse-chevron" aria-hidden="true">▾</span>
+        <span className="admin-card-head-right">
+          <span className="admin-pill">All times are Pacific Time</span>
+          <span className="admin-collapse-chevron" aria-hidden="true">▾</span>
+        </span>
       </summary>
 
       <form onSubmit={handleSubmit} noValidate>
