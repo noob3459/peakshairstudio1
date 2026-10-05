@@ -138,6 +138,12 @@ select:focus-visible {
   transform: translateY(-1px);
 }
 
+/* Irreversible actions (hard delete) — reuses the cancelled-status red, not a new token. */
+.btn-danger.btn-secondary { color: #a3372c; border-color: #a3372c; }
+.btn-danger.btn-secondary:hover { background: #a3372c; color: var(--ivory); }
+.btn-danger.btn-primary { background: #a3372c; border-color: #a3372c; }
+.btn-danger.btn-primary:hover { background: #8a2e24; border-color: #8a2e24; }
+
 .hero-actions { display: flex; flex-wrap: wrap; gap: 0.9rem; margin-top: 1.5rem; }
 
 /* ---------- Header / nav ---------- */

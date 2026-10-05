@@ -150,8 +150,10 @@ export const appointments = pgTable(
 // renamed or removed.
 export const appointmentEvents = pgTable("appointment_events", {
   id: text("id").primaryKey(),
-  appointmentId: text("appointment_id").references(() => appointments.id, { onDelete: "cascade" }),
-  action: text("action", { enum: ["created", "confirmed", "cancelled", "rescheduled"] }).notNull(),
+  // set null (not cascade): a hard-deleted appointment must not erase its own
+  // history — every identifying detail is already snapshotted on this row.
+  appointmentId: text("appointment_id").references(() => appointments.id, { onDelete: "set null" }),
+  action: text("action", { enum: ["created", "confirmed", "cancelled", "rescheduled", "deleted"] }).notNull(),
   actorStylistId: text("actor_stylist_id").references(() => stylists.id, { onDelete: "set null" }),
   actorName: text("actor_name").notNull(),
   clientName: text("client_name").notNull(),

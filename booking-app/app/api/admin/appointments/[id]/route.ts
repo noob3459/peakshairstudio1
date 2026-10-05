@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { db } from "@/lib/db/client";
 import { appointmentEvents, appointments, services, stylists } from "@/lib/db/schema";
-import { canActAcrossStylists, getCurrentStylist } from "@/lib/currentStylist";
+import { canActAcrossStylists, getCurrentStylist, isDev } from "@/lib/currentStylist";
 import { formatLocalDate, formatLocalTime } from "@/lib/timezone";
 import { sendAppointmentUpdateEmail } from "@/lib/email";
 import { isUniqueViolation } from "@/lib/db/errors";
@@ -117,6 +117,59 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     localTimeLabel: formatLocalTime(effectiveStart),
     action: emailAction,
   });
+
+  return NextResponse.json({ ok: true });
+}
+
+/**
+ * Permanently removes an appointment from the database. Dev-only (Aidenn) —
+ * a manager (Reyna) can cancel/archive via the PATCH "cancel" action above,
+ * which is reversible and keeps the appointment visible, but cannot hard
+ * delete. The "deleted" event is recorded before the row is removed so the
+ * dev account's activity log keeps a full record of what happened.
+ */
+export async function DELETE(_req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const me = await getCurrentStylist();
+  if (!me) {
+    return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+  }
+  if (!isDev(me)) {
+    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+  }
+
+  const { id } = await context.params;
+
+  const [existing] = await db
+    .select({
+      id: appointments.id,
+      startAt: appointments.startAt,
+      clientName: appointments.clientName,
+      serviceName: services.name,
+      stylistName: stylists.name,
+    })
+    .from(appointments)
+    .innerJoin(services, eq(appointments.serviceId, services.id))
+    .innerJoin(stylists, eq(appointments.stylistId, stylists.id))
+    .where(eq(appointments.id, id))
+    .limit(1);
+
+  if (!existing) {
+    return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+  }
+
+  await db.insert(appointmentEvents).values({
+    id: randomUUID(),
+    appointmentId: existing.id,
+    action: "deleted",
+    actorStylistId: me.id,
+    actorName: me.name,
+    clientName: existing.clientName,
+    serviceName: existing.serviceName,
+    stylistName: existing.stylistName,
+    startAt: existing.startAt,
+  });
+
+  await db.delete(appointments).where(eq(appointments.id, id));
 
   return NextResponse.json({ ok: true });
 }

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type EventAction = "created" | "confirmed" | "cancelled" | "rescheduled";
+type EventAction = "created" | "confirmed" | "cancelled" | "rescheduled" | "deleted";
 
 type AppointmentEvent = {
   id: string;
@@ -25,6 +25,15 @@ const ACTION_LABEL: Record<EventAction, string> = {
   confirmed: "Confirmed",
   cancelled: "Cancelled",
   rescheduled: "Rescheduled",
+  deleted: "Deleted",
+};
+
+const ACTION_BADGE: Record<EventAction, "confirmed" | "cancelled" | "pending"> = {
+  created: "pending",
+  confirmed: "confirmed",
+  cancelled: "cancelled",
+  rescheduled: "pending",
+  deleted: "cancelled",
 };
 
 function formatDateTime(iso: string): string {
@@ -153,7 +162,7 @@ export default function AdminActivityPage() {
                 <tr key={e.id}>
                   <td data-label="When">{formatDateTime(e.createdAt)}</td>
                   <td data-label="Action">
-                    <span className={`admin-status-badge admin-status-${e.action === "cancelled" ? "cancelled" : e.action === "confirmed" ? "confirmed" : "pending"}`}>
+                    <span className={`admin-status-badge admin-status-${ACTION_BADGE[e.action]}`}>
                       {ACTION_LABEL[e.action]}
                     </span>
                   </td>

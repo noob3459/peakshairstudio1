@@ -21,6 +21,7 @@ type AppointmentRow = {
 type RangeKey = "upcoming" | "today" | "all" | "past";
 
 export default function AdminAppointmentsPage() {
+  const [me, setMe] = useState<{ accessRole: string } | null>(null);
   const [appointments, setAppointments] = useState<AppointmentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +30,17 @@ export default function AdminAppointmentsPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
   const [rescheduleValue, setRescheduleValue] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<AppointmentRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setMe(data))
+      .catch(() => setMe(null));
+  }, []);
+
+  const isDev = me?.accessRole === "dev";
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -103,6 +115,25 @@ export default function AdminAppointmentsPage() {
       await load();
     } catch {
       setActionError("Network error — please try again.");
+    }
+  }
+
+  async function deleteAppointment(id: string) {
+    setDeleting(true);
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/admin/appointments/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) {
+        setActionError(data.error ?? "That action failed.");
+        return;
+      }
+      setDeleteTarget(null);
+      await load();
+    } catch {
+      setActionError("Network error — please try again.");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -272,6 +303,15 @@ export default function AdminAppointmentsPage() {
                               </button>
                             )
                           )}
+                          {isDev && (
+                            <button
+                              type="button"
+                              className="btn btn-secondary btn-danger"
+                              onClick={() => setDeleteTarget(a)}
+                            >
+                              Delete
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -279,6 +319,31 @@ export default function AdminAppointmentsPage() {
                 })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="admin-modal-backdrop" onClick={() => !deleting && setDeleteTarget(null)}>
+          <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
+            <p>
+              Permanently delete {deleteTarget.clientName}&rsquo;s {deleteTarget.serviceName} appointment on{" "}
+              {formatLocalDate(new Date(deleteTarget.startAt))}? This removes it from the database entirely and
+              cannot be undone.
+            </p>
+            <div className="admin-modal-actions">
+              <button type="button" className="btn btn-secondary" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary btn-danger"
+                onClick={() => deleteAppointment(deleteTarget.id)}
+                disabled={deleting}
+              >
+                {deleting ? "Deleting…" : "Delete Permanently"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
